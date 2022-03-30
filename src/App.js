@@ -1,11 +1,12 @@
-import React, {useMemo, useState } from "react";
-import { usePosts } from "./components/hooks/usePosts";
+import React, {useCallback, useEffect, useMemo, useState } from "react";
+import { usePosts } from "./hooks/usePosts";
 import PostFilter from "./components/PostFilter";
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
-import MyButton from "./components/UI/button/MyButton";
-import MyModal from "./components/UI/MyModal/MyModal";
+import MyButton from "./UI/button/MyButton";
+import MyModal from "./UI/MyModal/MyModal";
 import "./styles/app.css";
+import PostService from "./API/PostService";
 
 
 
@@ -20,8 +21,17 @@ function App() {
   const [filter, setFilter] = useState({sort: '', query: ''});
   const [modal, setModal] = useState(false); 
   const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query);
+  const [isPostLoading, setIsPostLoading] = useState(false);
+ useEffect(()=>{fetchPosts()}, [] )
 
- 
+ async function fetchPosts() {
+    setIsPostLoading(true);
+    setTimeout( async ()=>{
+    const posts = await PostService.getAll();
+    setPosts(posts);
+    setIsPostLoading(false);
+    }, 1000) 
+ }
 
   const createPost = (newPost) =>{
     setPosts([...posts, newPost])
@@ -33,7 +43,7 @@ function App() {
   }
 
   return (
-    <div className="App">
+    <div className="App"> 
       <MyButton style={{marginTop: 30}} onClick={() => setModal(true)}>
         Создать пользователя
       </MyButton>
@@ -42,8 +52,11 @@ function App() {
       </MyModal>
       
       <PostFilter filter={filter} setFilter={setFilter}/>
+      {isPostLoading 
+        ? <h1>Идет загрузка...</h1>
+        : <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Список постов"}/>
+      }
       
-      <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Список постов"}/>
     </div>
   );
 }
