@@ -7,6 +7,8 @@ import MyButton from "./UI/button/MyButton";
 import MyModal from "./UI/MyModal/MyModal";
 import "./styles/app.css";
 import PostService from "./API/PostService";
+import Loader from "./UI/Loader/Loader";
+import { useFetching } from "./hooks/useFetching";
 
 
 
@@ -21,17 +23,13 @@ function App() {
   const [filter, setFilter] = useState({sort: '', query: ''});
   const [modal, setModal] = useState(false); 
   const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query);
-  const [isPostLoading, setIsPostLoading] = useState(false);
- useEffect(()=>{fetchPosts()}, [] )
-
- async function fetchPosts() {
-    setIsPostLoading(true);
-    setTimeout( async ()=>{
+  const [fetchPosts, isPostLoading, postError] = useFetching(async ()=>{
     const posts = await PostService.getAll();
     setPosts(posts);
-    setIsPostLoading(false);
-    }, 1000) 
- }
+  });
+
+  useEffect(()=>{fetchPosts()}, [] )
+
 
   const createPost = (newPost) =>{
     setPosts([...posts, newPost])
@@ -50,10 +48,12 @@ function App() {
       <MyModal visible={modal} setVisible={setModal}>
         <PostForm create={createPost}/>
       </MyModal>
-      
+      {postError &&
+        <h1>Произошла ошибка</h1>
+      }
       <PostFilter filter={filter} setFilter={setFilter}/>
       {isPostLoading 
-        ? <h1>Идет загрузка...</h1>
+        ? <Loader/>
         : <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Список постов"}/>
       }
       
