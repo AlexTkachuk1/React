@@ -57,3 +57,20 @@
   p{
     font-style: italic;
   }
+
+  .page__wrapper{
+    margin-top: 3rem;
+    display: flex; 
+  }
+
+  .page {
+    padding: 1rem;
+    border: 1px solid teal;
+    cursor: pointer;
+    
+  }
+
+  .page__current {
+    border: .2rem solid orange;
+    font-weight: bold;
+  }
