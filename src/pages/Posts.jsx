@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePosts } from "../hooks/usePosts";
 import PostFilter from "../components/PostFilter";
 import PostForm from "../components/PostForm";
@@ -11,6 +11,7 @@ import Loader from "../UI/Loader/Loader";
 import { useFetching } from "../hooks/useFetching";
 import { getPageCount } from "../utils/pages";
 import Pagination from "../UI/pagination/Pagination";
+import { useObserver } from "../hooks/useObserver";
 
 
 
@@ -28,13 +29,18 @@ function Posts() {
     const [limit, setLimit] = useState(10);
     const [page, setPage] = useState(1);
     const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query);
+    const lastElement = useRef();
 
     const [fetchPosts, isPostLoading, postError] = useFetching(async () => {
         const response = await PostService.getAll(limit, page);
-        setPosts(response.data);
+        setPosts([...posts, ...response.data]);
         const totalCount = response.headers['x-total-count'];
         setTotalPages(getPageCount(totalCount, limit));
     });
+
+    useObserver(lastElement, page < totalPages, isPostLoading, () => {
+        setPage(page + 1);
+    })
 
     useEffect(() => { fetchPosts() }, [page])
 
@@ -64,9 +70,10 @@ function Posts() {
                 <h1>Произошла ошибка ${postError}</h1>
             }
             <PostFilter filter={filter} setFilter={setFilter} />
-            {isPostLoading
-                ? <Loader />
-                : <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Список постов"} />
+            <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Список постов"} />
+            <div ref={lastElement} style={{ height: 20, background: 'red' }}></div>
+            {isPostLoading &&
+                <Loader />
             }
             <Pagination
                 page={page}
