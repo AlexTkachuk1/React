@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import About from "../pages/About";
 import Home from "../pages/Home";
 import NotFound from "../pages/NotFound";
@@ -7,18 +7,43 @@ import {
     Routes,
     Route,
     Outlet
-  } from "react-router-dom";
+} from "react-router-dom";
+import { privateRoutes, publicRoutes } from "../router";
+import { AuthContext } from "../context";
 
 
 const AppRouter = () => {
+    const {isAuth} = useContext(AuthContext);
     return (
         <div>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="about" element={<About />} />
+            {isAuth
+                ? <Routes>
+                    {privateRoutes.map(route =>
+                        <Route
+                            path={route.path}
+                            element={<route.component />}
+                            key={route.path}
+                        />
+                    )}
+                </Routes>
+
+                : <Routes>
+                    {
+                        publicRoutes.map(route =>
+                            <Route
+                                path={route.path}
+                                element={<route.component />}
+                                key={route.path}
+                            />
+                        )
+                    }
+                </Routes>
+            }
+            {/* <Route path="/" element={<Home />} />
+                <Route exact path="about" element={<About />} />
+                <Route exact path="posts/:id" element={<PostIdPage />} />
                 <Route path="posts" element={<Posts />} />
-                <Route path="*" element={<NotFound />} />
-            </Routes>
+                <Route path="*" element={<NotFound />} /> */}
             <Outlet />
         </div>
     );
